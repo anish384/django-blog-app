@@ -3,36 +3,86 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <title>Document</title>
-    <link rel="stylesheet" href="{% static 'css/blog.css' %}">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BlogIt</title>
+    <link rel="stylesheet" href="{% static 'blog.css' %}">
 </head>
 <body>
-    <div id="content">
-        {% block content %}
-        {% endblock %}
+
+    <header class="site-header">
+        <div class="logo">
+            <a href="{% url 'blog:post_list' %}">BlogIt</a>
+        </div>
+        <nav class="main-nav">
+            <ul>
+                {% if request.user.is_authenticated %}
+                    <li>
+                        <span class="user-greeting">
+                            Hello, {{ request.user.first_name|default:request.user.username }}
+                        </span>
+                    </li>
+                    <li>
+                        <a href="{% url 'blog:post_create' %}" class="nav-button">Create Post</a>
+                    </li>
+                    <li>
+                        <form action="{% url 'logout' %}" method="post">
+                            {% csrf_token %}
+                            <button type="submit" class="logout-button">Logout</button>
+                        </form>
+                    </li>
+                {% else %}
+                    <li>
+                        <a href="{% url "login" %}" class="nav-button">Log In</a>
+                    </li>
+                    <li>
+                        <a href="{% url 'register' %}" class="nav-button">Register here</a>
+                    </li>
+                {% endif %}
+            </ul>
+        </nav>
+    </header>
+
+    <div class="container">
+        <main class="main-content">
+            {% block content %}
+            {% endblock %}
+        </main>
+
+        <aside class="sidebar">
+            <h2>My Blog</h2>
+            <p>
+                You have written <strong>{% user_total_posts request.user %}</strong> Posts
+            </p>
+            <p>
+                <a href="{% url "blog:post_feed" %}">Subscribe to my RSS feed</a>
+            </p>
+
+            <h3>Latest Posts</h3>
+            {% show_latest 3 %}
+
+            <h3>Most Commented Posts</h3>
+            {% get_most_commented_posts as most_commented_posts %}
+            <ul>
+                {% for post in most_commented_posts %}
+                <li>
+                    <a href="{{ post.get_absolute_url }}">{{ post.title }}</a>
+                </li>
+                {% endfor %}
+            </ul>
+        </aside>
     </div>
-    <div id="sidebar">
-        <h2>My blog</h2>
-        <p>
-            This is my blog.
-            I've written {% total_posts %} posts so far.
-        </p>
-        <p>
-            <a href="{% url "blog:post_feed" %}">
-                Subscribe to my RSS feed
-            </a>
-        </p>
-        <h3>Latest Posts</h3>
-        {% show_latest 3 %}
-        <h3>Most commented posts</h3>
-        {% get_most_commented_posts as most_commented_posts %}
-        <ul>
-            {% for post in most_commented_posts %}
-            <li>
-                <a href="{{ post.get_absolute_url }}">{{ post.title }}</a>
-            </li>
-            {% endfor %}
-        </ul>
-    </div>
+
+    <footer class="site-footer">
+        <div class="footer-content">
+            <p>&copy; 2025 BlogIt. All rights reserved.</p>
+            <ul class="social-links">
+                <li><a href="#">Facebook</a></li>
+                <li><a href="#">Twitter</a></li>
+                <li><a href="#">Instagram</a></li>
+            </ul>
+        </div>
+    </footer>
+
 </body>
 </html>

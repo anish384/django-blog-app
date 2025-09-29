@@ -1,5 +1,6 @@
 # Import the default admin site and the path function for URL routing.
 from django.contrib import admin
+from blog import views as blog_views 
 from django.urls import path, include
 
 # Import the sitemap view from Django's sitemaps framework.
@@ -22,12 +23,21 @@ urlpatterns = [
     path('admin/', admin.site.urls),
 
     # Include the URLs from your blog application, prefixed with 'blog/'.
-    path('', include('blog.urls', namespace='blog')),
+    # path('', include('blog.urls', namespace='blog')),
+
+    path('accounts/', include('django.contrib.auth.urls')),
 
     # Define the URL for the sitemap.
     # When a user or search engine requests /sitemap.xml, Django will use the 'sitemap' view.
     # The view is passed the 'sitemaps' dictionary, so it knows which sitemap
     # configurations to use to generate the XML content.
     path('sitemap.xml', sitemap, {'sitemaps': sitemaps},
-         name='django.contrib.sitemaps.views.sitemap')
+         name='django.contrib.sitemaps.views.sitemap'),
+
+        # 1. New path for the homepage (the root URL)
+    
+    # 2. Changed path for the blog app (now at /blog/)
+    path('', include('blog.urls', namespace='blog')),
+
+    path('accounts/register/', blog_views.register, name='register'),
 ]

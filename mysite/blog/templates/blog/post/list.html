@@ -1,29 +1,41 @@
 {% extends "blog/base.html" %}
 {% load blog_tags %}
+
 {% block title %}My Blog{% endblock %}
+
 {% block content %}
-<h1>My Blog</h1>
-{% if tag %}
-<h2>Posts tagged with "{{ tag.name }}"</h2>
-{% endif %}
-{% for post in posts %}
-<h2>
-    <a href="{{ post.get_absolute_url }}">
-        {{ post.title }}
-    </a>
-</h2>
-<p class="tags">
-    Tags:
-    {% for tag in post.tags.all %}
-    <a href="{% url "blog:post_list_by_tag" tag.slug %}">
-        {{ tag.name }}
-    </a>{% if not forloop.last %}, {% endif %}
+    {% if tag %}
+        <h1 class="page-title">Posts tagged with "{{ tag.name }}"</h1>
+    {% else %}
+        <h1 class="page-title">My Blog</h1>
+    {% endif %}
+
+    {% for post in posts %}
+        <article class="post-entry">
+            <h2>
+                <a href="{{ post.get_absolute_url }}">
+                    {{ post.title }}
+                </a>
+            </h2>
+
+            <p class="meta-info">
+                Published {{ post.publish }} by {{ post.author }}
+            </p>
+
+            <div class="post-body">
+                {{ post.body|markdown|truncatewords_html:30 }}
+            </div>
+            
+            <p class="tags">
+                <strong>Tags:</strong>
+                {% for tag in post.tags.all %}
+                    <a href="{% url 'blog:post_list_by_tag' tag.slug %}" class="tag-link">
+                        {{ tag.name }}
+                    </a>{% if not forloop.last %}, {% endif %}
+                {% endfor %}
+            </p>
+        </article>
     {% endfor %}
-</p>
-<p class="date">
-    Published {{ post.publish }} by {{ post.author }}
-</p>
-{{ post.body|markdown|truncatewords_html:30 }}
-{% endfor %}
-{% include "pagination.html" with page=posts %}
+
+    {% include "pagination.html" with page=posts %}
 {% endblock %}

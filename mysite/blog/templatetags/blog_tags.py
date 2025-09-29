@@ -26,3 +26,9 @@ def get_most_commented_posts(count=5):
 @register.filter(name='markdown')
 def markdown_format(text):
     return mark_safe(markdown.markdown(text))
+
+@register.simple_tag
+def user_total_posts(user):
+    if not user.is_authenticated:
+        return 0
+    return Post.published.filter(author=user).count()

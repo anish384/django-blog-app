@@ -2,6 +2,9 @@
 from django import forms
 # Import the Comment model from the local models.py file
 from .models import Comment
+from .models import Post
+from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth.models import User
 
 
 # This is a standard Django form, not tied to a specific model.
@@ -34,3 +37,13 @@ class CommentForm(forms.ModelForm):
 
 class SearchForm(forms.Form):
     query = forms.CharField()
+
+class PostForm(forms.ModelForm):
+    class Meta:
+        model = Post
+        fields = ['title', 'body', 'tags', 'status'] # Add all fields a user can edit
+
+class UserRegistrationForm(UserCreationForm):
+    class Meta:
+        model = User
+        fields = ('username', 'first_name', 'email')

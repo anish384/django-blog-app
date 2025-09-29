@@ -1,8 +1,14 @@
 # Django core imports for rendering templates and handling object lookups.
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import render, get_object_or_404, redirect
+
+from django.contrib.auth.decorators import login_required
+
+from django.utils.text import slugify
 
 # Django imports for pagination functionality.
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+
+from .forms import EmailPostForm, CommentForm, SearchForm, PostForm
 
 # Django's generic class-based view, useful for simple list views (though not used in the final post_list).
 from django.views.generic import ListView
@@ -18,6 +24,8 @@ from django.db.models import Count
 
 # PostgreSQL-specific search functionality from Django.
 from django.contrib.postgres.search import SearchVector
+
+from .forms import UserRegistrationForm
 
 # --- Local App Imports ---
 
@@ -276,3 +284,48 @@ def post_search(request):
                       'results': results
                   }
                  )
+
+@login_required
+def post_create(request):
+    if request.method == 'POST':
+        form = PostForm(request.POST)
+        if form.is_valid():
+            # Create a new post object but don't save to database yet
+            new_post = form.save(commit=False)
+            # Assign the current user to the author
+            new_post.author = request.user
+            # You might want to generate the slug here if it's not automatic
+            new_post.slug = slugify(new_post.title)
+            new_post.save()
+            # Save the many-to-many data for the form
+            form.save_m2m()
+            return redirect(new_post.get_absolute_url())
+    else:
+        form = PostForm()
+    return render(request,
+                  'blog/post/create.html',
+                  {'form': form})
+
+
+def register(request):
+    if request.method == 'POST':
+        user_form = UserRegistrationForm(request.POST)
+        if user_form.is_valid():
+            # The .save() method on UserCreationForm automatically handles
+            # password hashing and saving the new user.
+            new_user = user_form.save() # <-- This is the only line you need.
+            
+            # The following lines should be removed:
+            # new_user = user_form.save(commit=False)
+            # new_user.set_password(...)
+            # new_user.save()
+            
+            return render(request,
+                          'registration/register_done.html',
+                          {'new_user': new_user})
+    else:
+        user_form = UserRegistrationForm()
+    
+    return render(request,
+                  'registration/register.html',
+                  {'user_form': user_form})
